@@ -16,32 +16,11 @@ import com.example.template.ui.theme.TemplateTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            TemplateTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Androidddddddd",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            val temaViewModel: TemaViewModel = viewModel()
+            ClimaAppTheme(darkTheme = temaViewModel.isDarkMode.collectAsState().value) {
+                CiudadesView(temaViewModel = temaViewModel)
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TemplateTheme {
-        Greeting("Android")
     }
 }
