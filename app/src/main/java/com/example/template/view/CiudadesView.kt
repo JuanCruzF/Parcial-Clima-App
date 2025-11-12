@@ -1,23 +1,9 @@
 package com.example.template.view
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,13 +14,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.template.domain.ClimaIntent
 import com.example.template.domain.ClimaState
 import com.example.template.viewmodel.ClimaViewModel
-import com.example.template.viewmodel.TemaViewModel
+import com.example.template.TemaViewModel
 
 
 //composable raíz de la app - función de "View" en MVI.
 
 @Composable
-fun CiudadesView(temaViewModel: TemaViewModel) {
+fun CiudadesView(temaViewModel: TemaViewModel, ciudadInicial: String) {
 
     // creamos la instancia de
     val climaViewModel: ClimaViewModel = viewModel()
