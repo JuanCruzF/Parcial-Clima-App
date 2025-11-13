@@ -13,15 +13,26 @@ fun AppNavigation(ciudadInicial: String?) {
     val navController = rememberNavController()
     val temaViewModel: TemaViewModel = viewModel()
 
-    NavHost(navController = navController, startDestination = if (ciudadInicial.isNullOrBlank()) "selector" else "ciudades/{ciudad}") {
+    val startDestination = if (ciudadInicial.isNullOrBlank()) "selector" else "ciudades/$ciudadInicial"
+
+    NavHost(navController = navController, startDestination = startDestination) {
         composable("selector") {
             SelectorCiudadScreen {
                 navController.navigate("ciudades/$it")
             }
         }
         composable("ciudades/{ciudad}") {
-            val ciudad = it.arguments?.getString("ciudad") ?: ciudadInicial
-            CiudadesView(temaViewModel = temaViewModel, ciudadInicial = ciudad!!, onNavigateBack = { navController.popBackStack() })
+            val ciudad = it.arguments?.getString("ciudad")!!
+            CiudadesView(
+                temaViewModel = temaViewModel,
+                ciudadInicial = ciudad,
+                onNavigateBack = {
+                    navController.navigate("selector") {
+                        // Limpiamos el historial para que "Atrás" desde el selector cierre la app
+                        popUpTo(0)
+                    }
+                }
+            )
         }
     }
 }
