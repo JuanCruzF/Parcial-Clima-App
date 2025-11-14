@@ -20,7 +20,7 @@ import com.example.template.TemaViewModel
 //composable raíz de la app - función de "View" en MVI.
 
 @Composable
-fun CiudadesView(temaViewModel: TemaViewModel, ciudadInicial: String) {
+fun CiudadesView(temaViewModel: TemaViewModel, ciudadInicial: String, onNavigateBack: () -> Unit) {
 
     // creamos la instancia de
     val climaViewModel: ClimaViewModel = viewModel()
@@ -29,9 +29,9 @@ fun CiudadesView(temaViewModel: TemaViewModel, ciudadInicial: String) {
     // state se actualiza automáticamente cada vez que el VM emita uno nuevo.
     val state by climaViewModel.state.collectAsState()
 
-    //intent inicial
-    LaunchedEffect(Unit) {
-        climaViewModel.handleIntent(ClimaIntent.CargarClimaInicial)
+    // Cada vez que la ciudadInicial cambie, se lanza este efecto
+    LaunchedEffect(ciudadInicial) {
+        climaViewModel.handleIntent(ClimaIntent.CargarClima(ciudadInicial))
     }
 
     // llamado a UI
@@ -39,14 +39,15 @@ fun CiudadesView(temaViewModel: TemaViewModel, ciudadInicial: String) {
         state = state,
         onIntent = { intent ->
             climaViewModel.handleIntent(intent)
-        }
+        },
+        onNavigateBack = onNavigateBack
     )
 }
 
 //layout
 
 @Composable
-fun ClimaScreen(state: ClimaState, onIntent: (ClimaIntent) -> Unit) {
+fun ClimaScreen(state: ClimaState, onIntent: (ClimaIntent) -> Unit, onNavigateBack: () -> Unit) {
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
 
@@ -83,6 +84,12 @@ fun ClimaScreen(state: ClimaState, onIntent: (ClimaIntent) -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
+
+                Button(onClick = onNavigateBack) {
+                    Text("Atrás")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 //día Actual
                 Text(
