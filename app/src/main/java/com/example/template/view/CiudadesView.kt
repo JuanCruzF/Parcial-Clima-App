@@ -8,22 +8,40 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.template.viewmodel.SettingsViewModel
 
 //pantalla para buscar o listar ciudades
-//hay que cambiar todo el cuerpo del composabe para integrar a api
 
 @Composable
 fun CiudadesView(onCiudadSeleccionada: () -> Unit) {
+
+    // se obtiene la instancia del SettingsViewModel
+    val settingsViewModel: SettingsViewModel = viewModel()
+
+    //TODO con api reemplazar el coumn textfield → llamado API → resultado lazycolumn
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = "Acá va la lista o buscadr de ciudades")
+        Text(text = "Acá va la lista o buscador de ciudades")
 
-        //simular que elegimos una ciudad y navegar
-        Button(onClick = onCiudadSeleccionada) {
-            Text(text = "Simula la selección de ciudad e ir al Clima")
+        Button(onClick = {
+
+            //logica de guardado
+
+            // cuando se tenga el buscador esta variable viene de ahí
+            //simulado
+            val ciudadSimulada = "Buenos Aires"
+
+            // se guarda al ciudad mediante el vm. el guardado quedaría así (definitivo)
+            settingsViewModel.saveCity(ciudadSimulada)
+
+            // navegacion
+            onCiudadSeleccionada()
+        }) {
+            Text(text = "Buenos Aires (simulado)")
         }
     }
 }

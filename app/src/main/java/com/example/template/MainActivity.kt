@@ -13,6 +13,7 @@ import com.example.template.ui.theme.ClimaAppTheme
 import com.example.template.view.CiudadesView
 import com.example.template.view.ClimaView
 import com.example.template.viewmodel.TemaViewModel
+import com.example.template.viewmodel.SettingsViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,14 +27,21 @@ class MainActivity : ComponentActivity() {
 
                 // flujo condicional
 
-                // simulacion pero va a venir de SharedPreferences o DataStore)
-                val hayCiudadGuardada = false
+                // instancia del SettingsViewModel
+                val settingsViewModel: SettingsViewModel = viewModel()
 
-                // loogica pantalla de arranque
+                // fow de datos.
+                // "initial" valor antes de que DataStore cargue
+                val ciudadGuardada by settingsViewModel.selectedCity.collectAsState(initial = "")
+
+                // lógica de decisión
+                // isBlank() para ver que no este vacio
+                val hayCiudadGuardada = ciudadGuardada.isNotBlank()
+
                 val startDestination = if (hayCiudadGuardada) {
-                    "clima" // si hay ciudad, vamos al clima
+                    "clima"
                 } else {
-                    "ciudades" // Si no hay, vamos a la lista
+                    "ciudades"
                 }
 
 
