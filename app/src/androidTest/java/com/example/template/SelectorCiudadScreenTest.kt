@@ -22,7 +22,7 @@ class SelectorCiudadScreenTest {
         val onCiudadSeleccionada: (String) -> Unit = mock()
 
         composeTestRule.setContent {
-            SelectorCiudadScreen(onCiudadSeleccionada = onCiudadSeleccionada)
+            SelectorCiudadScreen()
         }
 
         composeTestRule.onNodeWithText("Córdoba").performClick()

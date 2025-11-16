@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.template.view.CiudadesView
 import com.example.template.view.SelectorCiudadScreen
+import com.example.template.viewmodel.TemaViewModel
 
 @Composable
 fun AppNavigation(ciudadInicial: String?) {
@@ -17,7 +18,7 @@ fun AppNavigation(ciudadInicial: String?) {
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable("selector") {
-            SelectorCiudadScreen {
+            SelectorCiudadScreen() {
                 navController.navigate("ciudades/$it")
             }
         }

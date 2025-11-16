@@ -1,23 +1,24 @@
 package com.example.template.data
 
 import android.content.Context
+import androidx.core.content.edit
 
 object CiudadStorage {
-    private const val PREFS_NAME = "app_prefs"
+    private const val PREFS = "ciudad_prefs"
     private const val KEY_CIUDAD = "ciudad_guardada"
 
     fun guardarCiudad(context: Context, ciudad: String) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().putString(KEY_CIUDAD, ciudad).apply()
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        prefs.edit { putString(KEY_CIUDAD, ciudad) }
     }
 
     fun obtenerCiudad(context: Context): String? {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_CIUDAD, null)
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_CIUDAD, null)
     }
 
     fun borrarCiudad(context: Context) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().remove(KEY_CIUDAD).apply()
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        prefs.edit { remove(KEY_CIUDAD) }
     }
 }

@@ -1,128 +1,140 @@
 package com.example.template.view
 
+import android.content.Intent
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.template.domain.ClimaIntent
-import com.example.template.domain.ClimaState
 import com.example.template.viewmodel.ClimaViewModel
-import com.example.template.TemaViewModel
+import com.example.template.viewmodel.TemaViewModel
 
-
-//composable raíz de la app - función de "View" en MVI.
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CiudadesView(temaViewModel: TemaViewModel, ciudadInicial: String, onNavigateBack: () -> Unit) {
-
-    // creamos la instancia de
-    val climaViewModel: ClimaViewModel = viewModel()
-
-    // vemos el state del ViewModel.
-    // state se actualiza automáticamente cada vez que el VM emita uno nuevo.
+fun CiudadesView(
+    temaViewModel: TemaViewModel,
+    ciudadInicial: String,
+    onNavigateBack: () -> Unit,
+    climaViewModel: ClimaViewModel = viewModel()
+) {
     val state by climaViewModel.state.collectAsState()
+    val context = LocalContext.current
 
-    // Cada vez que la ciudadInicial cambie, se lanza este efecto
     LaunchedEffect(ciudadInicial) {
         climaViewModel.handleIntent(ClimaIntent.CargarClima(ciudadInicial))
     }
 
-    // llamado a UI
-    ClimaScreen(
-        state = state,
-        onIntent = { intent ->
-            climaViewModel.handleIntent(intent)
-        },
-        onNavigateBack = onNavigateBack
-    )
-}
+    // Share: cuando el estado setea shareText, disparamos Intent
+    LaunchedEffect(state.shareText) {
+        val text = state.shareText ?: return@LaunchedEffect
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        context.startActivity(Intent.createChooser(sendIntent, "Compartir pronóstico"))
+    }
 
-//layout
-
-@Composable
-fun ClimaScreen(state: ClimaState, onIntent: (ClimaIntent) -> Unit, onNavigateBack: () -> Unit) {
-
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-
-        // cargando...
-        if (state.isLoading) {
-            //spinner
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(modifier = Modifier.size(64.dp))
-            }
-
-        //en caso de error
-        } else if (state.error != null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = state.error,
-                    color = Color.Red,
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            // si no está cargando y no hay error
-        } else {
-            //datos del clima
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
-            ) {
-
-                Button(onClick = onNavigateBack) {
-                    Text("Atrás")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Clima") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { climaViewModel.handleIntent(ClimaIntent.Compartir) }) {
+                        Icon(Icons.Filled.Share, contentDescription = "Compartir")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator()
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                //día Actual
-                Text(
-                    text = state.ciudad,
-                    fontSize = 32.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "${state.temperatura}°C",
-                    fontSize = 56.sp
-                )
-                Text(
-                    text = state.descripcion,
-                    fontSize = 20.sp,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                //placeholder
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .border(1.dp, Color.Gray)
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
+                state.error != null -> {
                     Text(
-                        text = "Acá iría el pronostico",
-                        textAlign = TextAlign.Center,
-                        color = Color.Gray
+                        text = state.error ?: "Error desconocido",
+                        color = Color.Red,
+                        textAlign = TextAlign.Center
                     )
+                }
+
+                else -> {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = state.ciudad, fontSize = 24.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "${state.temperatura}°C", fontSize = 32.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = state.descripcion, fontSize = 18.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(text = "Humedad: ${state.humedad}%", fontSize = 14.sp)
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Button(
+                            onClick = { climaViewModel.handleIntent(ClimaIntent.Refrescar) }
+                        ) {
+                            Text("Actualizar clima")
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(1.dp, Color.Gray)
+                                .padding(16.dp)
+                        ) {
+                            if (state.pronostico.isEmpty()) {
+                                Text(
+                                    text = "Sin pronóstico extendido disponible",
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                Column {
+                                    Text(
+                                        text = "Próximos días:",
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(bottom = 8.dp)
+                                    )
+                                    state.pronostico.forEach {
+                                        Text(
+                                            text = "- ${it.date}: ${it.tempMin}°C / ${it.tempMax}°C, ${it.description}",
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
