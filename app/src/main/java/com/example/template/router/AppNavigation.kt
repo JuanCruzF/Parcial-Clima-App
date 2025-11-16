@@ -21,7 +21,6 @@ fun AppNavigation(ciudadInicial: String?) {
         startDestination = start
     ) {
         composable("selector") {
-
             SelectorCiudadScreen(
                 onCiudadSeleccionada = { ciudad ->
                     navController.navigate("clima/$ciudad")
