@@ -30,7 +30,6 @@ class ApiWeatherRepository(
         val geo = apiClient.searchCitiesByName(cityName).firstOrNull()
             ?: throw IllegalArgumentException("Ciudad no encontrada")
 
-
         val current = apiClient.getCurrentWeather(geo.lat, geo.lon)
         val forecast = apiClient.getForecast5Days(geo.lat, geo.lon)
 
@@ -69,6 +68,23 @@ class ApiWeatherRepository(
             city = city,
             today = today,
             nextDays = nextDays
+        )
+    }
+
+    override suspend fun searchCityByCoordinates(
+        lat: Double,
+        lon: Double
+    ): City? {
+        // usamos la API /geo/1.0/reverse de OpenWeather
+        val result = apiClient.searchCityByCoordinates(lat, lon)
+        val item = result.firstOrNull() ?: return null
+
+        return City(
+            id = 0L,
+            name = item.name,
+            country = item.country,
+            lat = item.lat,
+            lon = item.lon
         )
     }
 }

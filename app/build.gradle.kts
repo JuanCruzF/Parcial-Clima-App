@@ -20,7 +20,6 @@ android {
 
     buildTypes {
         debug {
-
             buildConfigField(
                 "String",
                 "OPEN_WEATHER_API_KEY",

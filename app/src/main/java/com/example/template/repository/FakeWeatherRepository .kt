@@ -43,4 +43,11 @@ class FakeWeatherRepository : WeatherRepository {
             nextDays = nextDays
         )
     }
+
+    override suspend fun searchCityByCoordinates(
+        lat: Double,
+        lon: Double
+    ): City? {
+        TODO("Not yet implemented")
+    }
 }

@@ -1,9 +1,11 @@
 package com.example.template.view
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
@@ -31,11 +33,12 @@ fun CiudadesView(
     val state by climaViewModel.state.collectAsState()
     val context = LocalContext.current
 
+
     LaunchedEffect(ciudadInicial) {
         climaViewModel.handleIntent(ClimaIntent.CargarClima(ciudadInicial))
     }
 
-    // Share: cuando el estado setea shareText, disparamos Intent
+
     LaunchedEffect(state.shareText) {
         val text = state.shareText ?: return@LaunchedEffect
         val sendIntent = Intent(Intent.ACTION_SEND).apply {
@@ -51,17 +54,20 @@ fun CiudadesView(
                 title = { Text("Clima") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { climaViewModel.handleIntent(ClimaIntent.Compartir) }) {
+                    IconButton(onClick = {
+                        climaViewModel.handleIntent(ClimaIntent.Compartir)
+                    }) {
                         Icon(Icons.Filled.Share, contentDescription = "Compartir")
                     }
                 }
             )
         }
     ) { innerPadding ->
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -69,6 +75,7 @@ fun CiudadesView(
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
+
             when {
                 state.isLoading -> {
                     CircularProgressIndicator()
@@ -87,23 +94,26 @@ fun CiudadesView(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+
+
                         Text(text = state.ciudad, fontSize = 24.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text(text = "${state.temperatura}°C", fontSize = 32.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text(text = state.descripcion, fontSize = 18.sp)
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(Modifier.height(4.dp))
                         Text(text = "Humedad: ${state.humedad}%", fontSize = 14.sp)
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(Modifier.height(24.dp))
 
-                        Button(
-                            onClick = { climaViewModel.handleIntent(ClimaIntent.Refrescar) }
-                        ) {
+                        Button(onClick = {
+                            climaViewModel.handleIntent(ClimaIntent.Refrescar)
+                        }) {
                             Text("Actualizar clima")
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(Modifier.height(24.dp))
+
 
                         Box(
                             modifier = Modifier
@@ -111,23 +121,98 @@ fun CiudadesView(
                                 .border(1.dp, Color.Gray)
                                 .padding(16.dp)
                         ) {
+
                             if (state.pronostico.isEmpty()) {
+
                                 Text(
                                     text = "Sin pronóstico extendido disponible",
                                     color = Color.Gray,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.fillMaxWidth()
                                 )
+
                             } else {
+
                                 Column {
+
                                     Text(
                                         text = "Próximos días:",
-                                        fontSize = 16.sp,
-                                        modifier = Modifier.padding(bottom = 8.dp)
+                                        fontSize = 18.sp,
+                                        modifier = Modifier.padding(bottom = 12.dp)
                                     )
-                                    state.pronostico.forEach {
+
+
+                                    val maxTemp = state.pronostico.maxOf { it.tempMax }
+                                    val minTemp = state.pronostico.minOf { it.tempMin }
+                                    val range = (maxTemp - minTemp).takeIf { it > 0 } ?: 1.0
+
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(140.dp)
+                                            .padding(bottom = 8.dp),
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        verticalAlignment = Alignment.Bottom
+                                    ) {
+                                        state.pronostico.forEach { day ->
+
+                                            val normalizedMax =
+                                                ((day.tempMax - minTemp) / range)
+                                                    .toFloat().coerceIn(0f, 1f)
+
+                                            val normalizedMin =
+                                                ((day.tempMin - minTemp) / range)
+                                                    .toFloat().coerceIn(0f, 1f)
+
+                                            Column(
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Bottom,
+                                                modifier = Modifier.width(56.dp)
+                                            ) {
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .height(100.dp)
+                                                        .fillMaxWidth()
+                                                        .border(1.dp, Color.LightGray)
+                                                ) {
+
+
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .fillMaxHeight(normalizedMax)
+                                                            .align(Alignment.BottomCenter)
+                                                            .background(
+                                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                                            )
+                                                    )
+
+
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .fillMaxHeight(normalizedMin)
+                                                            .align(Alignment.BottomCenter)
+                                                            .background(MaterialTheme.colorScheme.primary)
+                                                    )
+                                                }
+
+                                                Spacer(Modifier.height(4.dp))
+
+                                                Text(day.date, fontSize = 10.sp, textAlign = TextAlign.Center)
+                                                Text(
+                                                    "${day.tempMin.toInt()}° / ${day.tempMax.toInt()}°",
+                                                    fontSize = 10.sp
+                                                )
+                                            }
+                                        }
+                                    }
+
+
+                                    state.pronostico.forEach { day ->
                                         Text(
-                                            text = "- ${it.date}: ${it.tempMin}°C / ${it.tempMax}°C, ${it.description}",
+                                            text = "- ${day.date}: ${day.tempMin}°C / ${day.tempMax}°C, ${day.description}",
                                             fontSize = 14.sp
                                         )
                                     }

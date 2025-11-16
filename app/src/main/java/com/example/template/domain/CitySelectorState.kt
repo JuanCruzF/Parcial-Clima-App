@@ -12,4 +12,8 @@ data class CitySelectorState(
 sealed class CitySelectorIntent {
     object LoadInitial : CitySelectorIntent()
     data class QueryChanged(val query: String) : CitySelectorIntent()
+
+
+    data class BuscarPorUbicacion(val lat: Double, val lon: Double) : CitySelectorIntent()
 }
+

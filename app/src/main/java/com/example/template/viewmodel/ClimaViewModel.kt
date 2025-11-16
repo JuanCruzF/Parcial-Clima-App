@@ -2,6 +2,7 @@ package com.example.template.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.template.BuildConfig
 import com.example.template.domain.ClimaIntent
 import com.example.template.domain.ClimaState
 import com.example.template.network.WeatherApiClient
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 class ClimaViewModel(
 
     private val repository: WeatherRepository = ApiWeatherRepository(
-        WeatherApiClient("3ca8ed3a66da6ecf389692f9521fab6c")
+        WeatherApiClient(BuildConfig.OPEN_WEATHER_API_KEY)
     )
 
 ) : ViewModel() {

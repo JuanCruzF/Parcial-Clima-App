@@ -14,12 +14,17 @@ class WeatherApiClient(
 ) {
     private val client = HttpClient(Android) {
         install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                }
+            )
         }
     }
 
     private val baseGeo = "https://api.openweathermap.org/geo/1.0"
     private val baseData = "https://api.openweathermap.org/data/2.5"
+
 
     @Serializable
     data class GeoCityResponse(
@@ -28,6 +33,7 @@ class WeatherApiClient(
         val lon: Double,
         val country: String
     )
+
 
     @Serializable
     data class MainInfo(
@@ -48,6 +54,7 @@ class WeatherApiClient(
         val weather: List<WeatherInfo>
     )
 
+
     @Serializable
     data class ForecastItemMain(
         val temp_min: Double,
@@ -66,6 +73,7 @@ class WeatherApiClient(
         val list: List<ForecastItem>
     )
 
+
     suspend fun searchCitiesByName(name: String): List<GeoCityResponse> {
         return client.get("$baseGeo/direct") {
             parameter("q", name)
@@ -73,6 +81,17 @@ class WeatherApiClient(
             parameter("appid", apiKey)
         }.body()
     }
+
+
+    suspend fun searchCityByCoordinates(lat: Double, lon: Double): List<GeoCityResponse> {
+        return client.get("$baseGeo/reverse") {
+            parameter("lat", lat)
+            parameter("lon", lon)
+            parameter("limit", 1)
+            parameter("appid", apiKey)
+        }.body()
+    }
+
 
     suspend fun getCurrentWeather(lat: Double, lon: Double): CurrentWeatherResponse {
         return client.get("$baseData/weather") {
@@ -83,6 +102,7 @@ class WeatherApiClient(
             parameter("appid", apiKey)
         }.body()
     }
+
 
     suspend fun getForecast5Days(lat: Double, lon: Double): ForecastResponse {
         return client.get("$baseData/forecast") {

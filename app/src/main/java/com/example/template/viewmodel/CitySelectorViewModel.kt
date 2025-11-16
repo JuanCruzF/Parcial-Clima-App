@@ -2,7 +2,7 @@ package com.example.template.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-
+import com.example.template.BuildConfig
 import com.example.template.domain.CitySelectorIntent
 import com.example.template.domain.CitySelectorState
 import com.example.template.network.WeatherApiClient
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 class CitySelectorViewModel(
     private val repository: WeatherRepository = ApiWeatherRepository(
-        WeatherApiClient("3ca8ed3a66da6ecf389692f9521fab6c")
+        WeatherApiClient(BuildConfig.OPEN_WEATHER_API_KEY)
     )
 ) : ViewModel() {
 
@@ -28,45 +28,105 @@ class CitySelectorViewModel(
 
     fun handleIntent(intent: CitySelectorIntent) {
         when (intent) {
-            CitySelectorIntent.LoadInitial -> {
-                // Podés mostrar ciudades populares, por ahora dejamos vacío
-                _state.update { it.copy(results = emptyList(), error = null) }
-            }
-            is CitySelectorIntent.QueryChanged -> {
-                _state.update { it.copy(query = intent.query) }
-                buscarCiudades(intent.query)
-            }
+            CitySelectorIntent.LoadInitial -> { /* opcional, por ahora nada */ }
+
+            is CitySelectorIntent.QueryChanged ->
+                searchByQuery(intent.query)
+
+            is CitySelectorIntent.BuscarPorUbicacion ->
+                searchByLocation(intent.lat, intent.lon)
         }
     }
 
-    private fun buscarCiudades(query: String) {
-        currentSearchJob?.cancel()
+    /**
+     * Búsqueda por texto con debounce
+     */
+    private fun searchByQuery(query: String) {
+
+        _state.update { it.copy(query = query) }
+
 
         if (query.isBlank()) {
-            _state.update { it.copy(results = emptyList(), isLoading = false, error = null) }
+            currentSearchJob?.cancel()
+            _state.update {
+                it.copy(
+                    results = emptyList(),
+                    isLoading = false,
+                    error = null
+                )
+            }
             return
         }
 
+
+        currentSearchJob?.cancel()
         currentSearchJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                // pequeño debounce para no pegarle a la API por cada tecla
-                delay(300)
+
+                delay(500)
+
                 val cities = repository.searchCities(query)
 
                 _state.update {
+                    if (cities.isEmpty()) {
+                        it.copy(
+                            results = emptyList(),
+                            isLoading = false,
+                            error = "No se encontraron ciudades"
+                        )
+                    } else {
+                        it.copy(
+                            results = cities,
+                            isLoading = false,
+                            error = null
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _state.update {
                     it.copy(
-                        results = cities,
+                        results = emptyList(),
                         isLoading = false,
-                        error = if (cities.isEmpty()) "No se encontraron ciudades" else null
+                        error = "Error al buscar ciudades"
                     )
+                }
+            }
+        }
+    }
+
+    /**
+     * Búsqueda por geolocalización (usa /geo/1.0/reverse vía repository)
+     */
+    private fun searchByLocation(lat: Double, lon: Double) {
+        _state.update { it.copy(isLoading = true, error = null) }
+
+        viewModelScope.launch {
+            try {
+                val city = repository.searchCityByCoordinates(lat, lon)
+
+                _state.update {
+                    if (city != null) {
+                        it.copy(
+                            query = city.name,
+                            results = listOf(city),
+                            isLoading = false,
+                            error = null
+                        )
+                    } else {
+                        it.copy(
+                            isLoading = false,
+                            results = emptyList(),
+                            error = "No se encontró ciudad para tu ubicación"
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = "Error al buscar ciudades"
+                        error = "Error al buscar por ubicación"
                     )
                 }
             }
