@@ -20,18 +20,37 @@ class ClimaViewModel : ViewModel() {
     private val _state = MutableStateFlow(ClimaState())
     val state = _state.asStateFlow()
 
+    // Datos falsos para simular una API o repositorio
+    private val climasFalsos = mapOf(
+        "Buenos Aires" to ClimaState(ciudad = "Buenos Aires", temperatura = 25.4, descripcion = "Mayormente Soleado"),
+        "Córdoba" to ClimaState(ciudad = "Córdoba", temperatura = 28.1, descripcion = "Soleado"),
+        "Rosario" to ClimaState(ciudad = "Rosario", temperatura = 26.5, descripcion = "Parcialmente Nublado"),
+        "La Plata" to ClimaState(ciudad = "La Plata", temperatura = 24.9, descripcion = "Lluvias débiles"),
+        "Mar del Plata" to ClimaState(ciudad = "Mar del Plata", temperatura = 22.0, descripcion = "Ventoso"),
+        "San Miguel de Tucumán" to ClimaState(ciudad = "San Miguel de Tucumán", temperatura = 31.0, descripcion = "Muy caluroso"),
+        "Salta" to ClimaState(ciudad = "Salta", temperatura = 29.5, descripcion = "Soleado"),
+        "Santa Fe" to ClimaState(ciudad = "Santa Fe", temperatura = 27.8, descripcion = "Húmedo"),
+        "Corrientes" to ClimaState(ciudad = "Corrientes", temperatura = 30.0, descripcion = "Tropical"),
+        "Mendoza" to ClimaState(ciudad = "Mendoza", temperatura = 26.2, descripcion = "Seco y soleado")
+    )
+
 
     // INTENT
     fun handleIntent(intent: ClimaIntent) {
         when (intent) {
             is ClimaIntent.CargarClimaInicial -> {
-                cargarClima()
+                // Mantenemos una ciudad por defecto si se llama a la carga inicial
+                cargarClima("Buenos Aires")
+            }
+            // Agregamos el nuevo branch para manejar la carga de una ciudad específica
+            is ClimaIntent.CargarClima -> {
+                cargarClima(intent.ciudad)
             }
         }
     }
 
     //LÓGICA
-    private fun cargarClima() {
+    private fun cargarClima(ciudad: String) {
         viewModelScope.launch {
 
             //modo cargando y limpiar errores
@@ -42,14 +61,26 @@ class ClimaViewModel : ViewModel() {
                 // demora de red de 2 segundos
                 delay(2000)
 
-                // datos "falsos"
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        ciudad = "Buenos Aires",
-                        temperatura = 25.4,
-                        descripcion = "Mayormente Soleado"
-                    )
+                // Buscamos los datos en nuestro mapa de climas falsos
+                val climaParaCiudad = climasFalsos[ciudad]
+
+                if (climaParaCiudad != null) {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            ciudad = climaParaCiudad.ciudad,
+                            temperatura = climaParaCiudad.temperatura,
+                            descripcion = climaParaCiudad.descripcion
+                        )
+                    }
+                } else {
+                    // Si no encontramos la ciudad, mostramos un error
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "No se encontraron datos para $ciudad."
+                        )
+                    }
                 }
 
             } catch (e: Exception) {
