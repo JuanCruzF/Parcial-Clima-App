@@ -35,9 +35,8 @@ class FakeWeatherRepositoryForSelector : WeatherRepository {
         return WeatherForecast(city, today, next)
     }
 
-    // ➕ NUEVO: hay que implementarlo porque ahora la interfaz lo exige
     override suspend fun searchCityByCoordinates(lat: Double, lon: Double): City? {
-        // No lo usamos en estos tests, devolvemos una ciudad dummy
+        // No se usa en estos tests
         return City(99, "Ciudad Geo", "AR", lat, lon)
     }
 }
@@ -50,7 +49,7 @@ class CitySelectorViewModelTest {
         val vm = CitySelectorViewModel(repository = FakeWeatherRepositoryForSelector())
 
         vm.handleIntent(CitySelectorIntent.QueryChanged("buenos"))
-        advanceUntilIdle()   // dejamos que termine la corrutina con delay
+        advanceUntilIdle()
 
         val state = vm.state.value
         assertFalse(state.isLoading)
@@ -72,5 +71,37 @@ class CitySelectorViewModelTest {
         assertEquals(0, state.results.size)
     }
 
+    @Test
+    fun buscarPorUbicacion_actualizaEstado() = runTest {
+        val fakeRepo = object : WeatherRepository {
 
+            override suspend fun searchCities(query: String): List<City> =
+                emptyList()
+
+            override suspend fun getWeatherForCityName(cityName: String): WeatherForecast {
+                // Dummy, no se usa en este test
+                val city = City(1, cityName, "AR", 0.0, 0.0)
+                val today = TodayWeather(20.0, 60, "Parcialmente nublado", "10d")
+                val next = emptyList<DailyForecast>()
+                return WeatherForecast(city, today, next)
+            }
+
+            override suspend fun searchCityByCoordinates(lat: Double, lon: Double): City? =
+                City(1L, "Buenos Aires", "AR", lat, lon)
+        }
+
+        val viewModel = CitySelectorViewModel(repository = fakeRepo)
+
+        viewModel.handleIntent(
+            CitySelectorIntent.BuscarPorUbicacion(-34.6, -58.38)
+        )
+        advanceUntilIdle()
+
+        val state = viewModel.state.value
+
+        assertEquals("Buenos Aires", state.query)
+        assertEquals(1, state.results.size)
+        assertFalse(state.isLoading)
+        assertNull(state.error)
+    }
 }
