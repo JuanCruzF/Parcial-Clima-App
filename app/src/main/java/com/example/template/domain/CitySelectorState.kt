@@ -16,4 +16,3 @@ sealed class CitySelectorIntent {
 
     data class BuscarPorUbicacion(val lat: Double, val lon: Double) : CitySelectorIntent()
 }
-

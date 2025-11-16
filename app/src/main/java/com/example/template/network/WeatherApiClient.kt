@@ -83,16 +83,6 @@ class WeatherApiClient(
     }
 
 
-    suspend fun searchCityByCoordinates(lat: Double, lon: Double): List<GeoCityResponse> {
-        return client.get("$baseGeo/reverse") {
-            parameter("lat", lat)
-            parameter("lon", lon)
-            parameter("limit", 1)
-            parameter("appid", apiKey)
-        }.body()
-    }
-
-
     suspend fun getCurrentWeather(lat: Double, lon: Double): CurrentWeatherResponse {
         return client.get("$baseData/weather") {
             parameter("lat", lat)
@@ -110,6 +100,15 @@ class WeatherApiClient(
             parameter("lon", lon)
             parameter("units", "metric")
             parameter("lang", "es")
+            parameter("appid", apiKey)
+        }.body()
+    }
+
+    suspend fun searchCityByCoordinates(lat: Double, lon: Double): List<GeoCityResponse> {
+        return client.get("$baseGeo/reverse") {
+            parameter("lat", lat)
+            parameter("lon", lon)
+            parameter("limit", 1)
             parameter("appid", apiKey)
         }.body()
     }

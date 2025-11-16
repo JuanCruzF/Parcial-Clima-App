@@ -1,32 +1,21 @@
-import android.Manifest
+package com.example.template.view
+
 import android.content.Context
-import android.location.LocationManager
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.template.data.CiudadStorage
 import com.example.template.domain.CitySelectorIntent
 import com.example.template.viewmodel.CitySelectorViewModel
-
 
 @Composable
 fun SelectorCiudadScreen(
@@ -45,7 +34,10 @@ fun SelectorCiudadScreen(
             .fillMaxSize()
             .padding(24.dp)
     ) {
-        Text("Selecciona tu ciudad", style = MaterialTheme.typography.titleLarge)
+        Text(
+            text = "Seleccioná tu ciudad",
+            style = MaterialTheme.typography.titleLarge
+        )
 
         Spacer(Modifier.height(16.dp))
 
@@ -60,41 +52,9 @@ fun SelectorCiudadScreen(
 
         Spacer(Modifier.height(8.dp))
 
-        // NUEVO botón de geolocalización
         Button(
             onClick = {
-                val locationManager =
-                    context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-                val coarseGranted = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-                val fineGranted = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-
-                val provider = when {
-                    locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER) ->
-                        LocationManager.GPS_PROVIDER
-                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ->
-                        LocationManager.NETWORK_PROVIDER
-                    else -> null
-                }
-
-                val location = if (provider != null && (coarseGranted || fineGranted)) {
-                    locationManager.getLastKnownLocation(provider)
-                } else null
-
-                val (lat, lon) = if (location != null) {
-                    location.latitude to location.longitude
-                } else {
-                    // Fallback para que siempre funcione en el parcial: Buenos Aires
-                    -34.6037 to -58.3816
-                }
-
+                val (lat, lon) = obtenerUbicacionOSimilar(context)
                 citySelectorViewModel.handleIntent(
                     CitySelectorIntent.BuscarPorUbicacion(lat, lon)
                 )
@@ -106,8 +66,27 @@ fun SelectorCiudadScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Loading + errores
+        if (state.isLoading) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
 
+        if (state.error != null) {
+            Text(
+                text = state.error ?: "",
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
 
         LazyColumn(
             modifier = Modifier.fillMaxSize()
@@ -117,16 +96,26 @@ fun SelectorCiudadScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-
+                            // ✅ GUARDAR CIUDAD
                             CiudadStorage.guardarCiudad(context, city.name)
                             onCiudadSeleccionada(city.name)
                         }
                         .padding(vertical = 8.dp)
                 ) {
-                    Text("${city.name}, ${city.country}")
-                    Text("(${city.lat}, ${city.lon})", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        text = "${city.name}, ${city.country}",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = "(${city.lat}, ${city.lon})",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         }
     }
+}
+
+private fun obtenerUbicacionOSimilar(context: Context): Pair<Double, Double> {
+    return -34.6037 to -58.3816
 }

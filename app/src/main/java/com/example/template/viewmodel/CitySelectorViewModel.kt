@@ -28,7 +28,7 @@ class CitySelectorViewModel(
 
     fun handleIntent(intent: CitySelectorIntent) {
         when (intent) {
-            CitySelectorIntent.LoadInitial -> { /* opcional, por ahora nada */ }
+            CitySelectorIntent.LoadInitial -> { /* opcional */ }
 
             is CitySelectorIntent.QueryChanged ->
                 searchByQuery(intent.query)
@@ -38,13 +38,8 @@ class CitySelectorViewModel(
         }
     }
 
-    /**
-     * Búsqueda por texto con debounce
-     */
     private fun searchByQuery(query: String) {
-
         _state.update { it.copy(query = query) }
-
 
         if (query.isBlank()) {
             currentSearchJob?.cancel()
@@ -58,15 +53,12 @@ class CitySelectorViewModel(
             return
         }
 
-
         currentSearchJob?.cancel()
         currentSearchJob = viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-
                 delay(500)
-
                 val cities = repository.searchCities(query)
 
                 _state.update {
@@ -89,16 +81,13 @@ class CitySelectorViewModel(
                     it.copy(
                         results = emptyList(),
                         isLoading = false,
-                        error = "Error al buscar ciudades"
+                        error = "Error al buscar ciudades: ${e.message ?: e::class.simpleName}"
                     )
                 }
             }
         }
     }
 
-    /**
-     * Búsqueda por geolocalización (usa /geo/1.0/reverse vía repository)
-     */
     private fun searchByLocation(lat: Double, lon: Double) {
         _state.update { it.copy(isLoading = true, error = null) }
 
@@ -126,7 +115,7 @@ class CitySelectorViewModel(
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = "Error al buscar por ubicación"
+                        error = "Error al buscar por ubicación: ${e.message ?: e::class.simpleName}"
                     )
                 }
             }

@@ -12,9 +12,12 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Test
 
+// Fake repo usado en los tests de búsqueda por texto
 class FakeWeatherRepositoryForSelector : WeatherRepository {
+
     override suspend fun searchCities(query: String): List<City> {
         return listOf(
             City(1, "Buenos Aires", "AR", -34.6, -58.4),
@@ -23,13 +26,19 @@ class FakeWeatherRepositoryForSelector : WeatherRepository {
     }
 
     override suspend fun getWeatherForCityName(cityName: String): WeatherForecast {
-        // No se usa en estos tests
+        // Dummy para cumplir la interfaz, no se usa en estos tests
         val city = City(1, cityName, "AR", 0.0, 0.0)
         val today = TodayWeather(25.0, 50, "Soleado", "10d")
         val next = listOf(
             DailyForecast("mañana", 18.0, 26.0, "Parcialmente nublado")
         )
         return WeatherForecast(city, today, next)
+    }
+
+    // ➕ NUEVO: hay que implementarlo porque ahora la interfaz lo exige
+    override suspend fun searchCityByCoordinates(lat: Double, lon: Double): City? {
+        // No lo usamos en estos tests, devolvemos una ciudad dummy
+        return City(99, "Ciudad Geo", "AR", lat, lon)
     }
 }
 
@@ -41,7 +50,7 @@ class CitySelectorViewModelTest {
         val vm = CitySelectorViewModel(repository = FakeWeatherRepositoryForSelector())
 
         vm.handleIntent(CitySelectorIntent.QueryChanged("buenos"))
-        advanceUntilIdle()
+        advanceUntilIdle()   // dejamos que termine la corrutina con delay
 
         val state = vm.state.value
         assertFalse(state.isLoading)
@@ -62,4 +71,6 @@ class CitySelectorViewModelTest {
         val state = vm.state.value
         assertEquals(0, state.results.size)
     }
+
+
 }

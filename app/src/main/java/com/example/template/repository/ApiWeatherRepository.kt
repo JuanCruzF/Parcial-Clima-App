@@ -26,7 +26,6 @@ class ApiWeatherRepository(
     }
 
     override suspend fun getWeatherForCityName(cityName: String): WeatherForecast {
-
         val geo = apiClient.searchCitiesByName(cityName).firstOrNull()
             ?: throw IllegalArgumentException("Ciudad no encontrada")
 
@@ -49,7 +48,7 @@ class ApiWeatherRepository(
         )
 
         val nextDays = forecast.list
-            .groupBy { it.dt_txt.substring(0, 10) } // yyyy-MM-dd
+            .groupBy { it.dt_txt.substring(0, 10) }
             .entries
             .take(5)
             .map { (date, items) ->
@@ -71,11 +70,11 @@ class ApiWeatherRepository(
         )
     }
 
+
     override suspend fun searchCityByCoordinates(
         lat: Double,
         lon: Double
     ): City? {
-        // usamos la API /geo/1.0/reverse de OpenWeather
         val result = apiClient.searchCityByCoordinates(lat, lon)
         val item = result.firstOrNull() ?: return null
 
