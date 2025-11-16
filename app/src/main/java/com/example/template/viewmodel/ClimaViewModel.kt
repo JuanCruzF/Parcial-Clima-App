@@ -10,10 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * El "Cerebro" de nuestra pantalla de Clima.
- * Sigue el patrón MVI.
- */
+// El "cerebro" de la pantalla clima
+//sigue el patron MVI
 class ClimaViewModel : ViewModel() {
 
     // STATE
@@ -50,7 +48,8 @@ class ClimaViewModel : ViewModel() {
     }
 
     //LÓGICA
-    private fun cargarClima(ciudad: String) {
+    //TODO API
+    private fun cargarClima() {
         viewModelScope.launch {
 
             //modo cargando y limpiar errores
