@@ -8,8 +8,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import org.mockito.kotlin.mock
-import org.mockito.kotlin.verify
 
 @RunWith(JUnit4::class)
 class SelectorCiudadScreenTest {
@@ -29,4 +27,6 @@ class SelectorCiudadScreenTest {
 
         verify(onCiudadSeleccionada).invoke("Córdoba")
     }
+
+    private fun mock(): (String) -> Unit {}
 }

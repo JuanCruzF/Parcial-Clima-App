@@ -23,6 +23,13 @@ class FakeRepoForTest : WeatherRepository {
         )
         return WeatherForecast(city, today, next)
     }
+
+    override suspend fun searchCityByCoordinates(
+        lat: Double,
+        lon: Double
+    ): City? {
+        TODO("Not yet implemented")
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
