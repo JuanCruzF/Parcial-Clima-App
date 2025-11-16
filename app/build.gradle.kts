@@ -73,10 +73,10 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.6")
     implementation(libs.androidx.compose.foundation)
 
-    // Ktor client para consumir OpenWeather
-    implementation("io.ktor:ktor-client-android:3.3.2")
-    implementation("io.ktor:ktor-client-content-negotiation:3.3.2")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.3.2")
+    // Ktor client para consumir OpenWeather (versión 2.x compatible con Kotlin 2.0)
+    implementation("io.ktor:ktor-client-android:2.3.13")
+    implementation("io.ktor:ktor-client-content-negotiation:2.3.13")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.13")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
