@@ -1,4 +1,3 @@
 package com.example.template
 
-class Clima {
-}
+data class Clima(val ciudad: String, val temperatura: Double, val descripcion: String)

@@ -22,6 +22,9 @@ data class ClimaState(
 // --- INTENT ---
 //acciones de usuario o sistema - interfaz sellada para limitar acciones
 sealed interface ClimaIntent {
+    // Cargar el clima para una ciudad específica
+    data class CargarClima(val ciudad: String) : ClimaIntent
+
     // carga por primera vez
     object CargarClimaInicial : ClimaIntent
 
