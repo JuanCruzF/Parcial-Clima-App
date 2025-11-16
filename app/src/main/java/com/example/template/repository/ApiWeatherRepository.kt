@@ -14,6 +14,7 @@ class ApiWeatherRepository(
         if (query.isBlank()) return emptyList()
 
         val result = apiClient.searchCitiesByName(query)
+
         return result.mapIndexed { index, item ->
             City(
                 id = index.toLong(),
@@ -26,18 +27,18 @@ class ApiWeatherRepository(
     }
 
     override suspend fun getWeatherForCityName(cityName: String): WeatherForecast {
-        val geo = apiClient.searchCitiesByName(cityName).firstOrNull()
-            ?: throw IllegalArgumentException("Ciudad no encontrada")
 
-        val current = apiClient.getCurrentWeather(geo.lat, geo.lon)
-        val forecast = apiClient.getForecast5Days(geo.lat, geo.lon)
+        val current = apiClient.getCurrentWeatherByCityName(cityName)
+
+
+        val forecast = apiClient.getForecastByCityName(cityName)
 
         val city = City(
             id = 0L,
             name = current.name,
-            country = geo.country,
-            lat = geo.lat,
-            lon = geo.lon
+            country = current.sys?.country ?: "",
+            lat = current.coord.lat,
+            lon = current.coord.lon
         )
 
         val today = TodayWeather(
@@ -47,21 +48,26 @@ class ApiWeatherRepository(
             icon = current.weather.firstOrNull()?.icon ?: ""
         )
 
-        val nextDays = forecast.list
-            .groupBy { it.dt_txt.substring(0, 10) }
-            .entries
-            .take(5)
-            .map { (date, items) ->
-                val min = items.minOf { it.main.temp_min }
-                val max = items.maxOf { it.main.temp_max }
-                val desc = items.first().weather.firstOrNull()?.description ?: ""
-                DailyForecast(
-                    date = date,
-                    tempMin = min,
-                    tempMax = max,
-                    description = desc
-                )
-            }
+
+        val nextDays: List<DailyForecast> =
+            forecast.list
+                .groupBy { it.dt_txt.substring(0, 10) }
+                .entries
+                .sortedBy { it.key }
+                .take(5)
+                .map { (date, items) ->
+                    val tempsMin = items.map { it.main.temp_min ?: it.main.temp }
+                    val tempsMax = items.map { it.main.temp_max ?: it.main.temp }
+                    val description =
+                        items.firstOrNull()?.weather?.firstOrNull()?.description ?: ""
+
+                    DailyForecast(
+                        date = date,
+                        tempMin = tempsMin.minOrNull() ?: items.first().main.temp,
+                        tempMax = tempsMax.maxOrNull() ?: items.first().main.temp,
+                        description = description
+                    )
+                }
 
         return WeatherForecast(
             city = city,
@@ -69,7 +75,6 @@ class ApiWeatherRepository(
             nextDays = nextDays
         )
     }
-
 
     override suspend fun searchCityByCoordinates(
         lat: Double,

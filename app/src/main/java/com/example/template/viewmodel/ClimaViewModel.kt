@@ -8,42 +8,42 @@ import com.example.template.domain.ClimaState
 import com.example.template.network.WeatherApiClient
 import com.example.template.repository.ApiWeatherRepository
 import com.example.template.repository.WeatherRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ClimaViewModel(
-
     private val repository: WeatherRepository = ApiWeatherRepository(
         WeatherApiClient(BuildConfig.OPEN_WEATHER_API_KEY)
     )
-
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(ClimaState(isLoading = false))
+    private val _state = MutableStateFlow(ClimaState())
     val state = _state.asStateFlow()
-
-    private var ciudadActual: String? = null
 
     fun handleIntent(intent: ClimaIntent) {
         when (intent) {
             is ClimaIntent.CargarClima -> cargarClima(intent.ciudad)
-            ClimaIntent.Refrescar -> ciudadActual?.let { cargarClima(it, fromRefresh = true) }
-            ClimaIntent.Compartir -> prepararTextoCompartir()
+            ClimaIntent.Refrescar -> refrescar()
+            ClimaIntent.Compartir -> compartir()
         }
     }
 
-    private fun cargarClima(ciudad: String, fromRefresh: Boolean = false) {
-        ciudadActual = ciudad
+    private fun cargarClima(ciudad: String) {
+        if (ciudad.isBlank()) return
+
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null, shareText = null) }
+            _state.update {
+                it.copy(
+                    ciudad = ciudad,
+                    isLoading = true,
+                    error = null,
+                    shareText = null
+                )
+            }
 
             try {
-                // podés incluso sacar este delay si querés
-                delay(200)
-
                 val forecast = repository.getWeatherForCityName(ciudad)
 
                 _state.update {
@@ -58,6 +58,7 @@ class ClimaViewModel(
                     )
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -68,8 +69,15 @@ class ClimaViewModel(
         }
     }
 
-    private fun prepararTextoCompartir() {
-        val s = state.value
+    private fun refrescar() {
+        val ciudadActual = _state.value.ciudad
+        if (ciudadActual.isNotBlank()) {
+            cargarClima(ciudadActual)
+        }
+    }
+
+    private fun compartir() {
+        val s = _state.value
         if (s.ciudad.isBlank()) return
 
         val builder = StringBuilder()
