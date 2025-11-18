@@ -2,7 +2,7 @@ package com.example.template.viewmodel
 
 import com.example.template.domain.ClimaIntent
 import com.example.template.model.City
-import com.example.template.model.Weather
+import com.example.template.model.TodayWeather
 import com.example.template.model.WeatherForecast
 import com.example.template.repository.WeatherRepository
 import com.example.template.util.MainDispatcherRule
@@ -31,14 +31,14 @@ class ClimaViewModelTest {
     // datos de prueba
     private val ciudadEjemplo = "Buenos Aires"
     private val forecastData = WeatherForecast(
-        city = City(ciudadEjemplo, 0.0, 0.0, "AR"),
-        today = Weather("2025-11-18", 25.0, 15.0, 30.0, "Soleado", 50, ""),
+        city = City(id = 1L, name = ciudadEjemplo, country = "AR", lat = 0.0, lon = 0.0),
+        today = TodayWeather(temperature = 25.0, humidity = 50, description = "Soleado", icon = ""),
         nextDays = emptyList()
     )
 
     private val refreshedForecastData = WeatherForecast(
-        city = City(ciudadEjemplo, 0.0, 0.0, "AR"),
-        today = Weather("2025-11-18", 26.0, 16.0, 31.0, "Caluroso", 55, ""),
+        city = City(id = 1L, name = ciudadEjemplo, country = "AR", lat = 0.0, lon = 0.0),
+        today = TodayWeather(temperature = 26.0, humidity = 55, description = "Caluroso", icon = ""),
         nextDays = emptyList()
     )
 
@@ -87,8 +87,8 @@ class ClimaViewModelTest {
         // given: mockeamos la carga de datos
         val ciudad = "Madrid"
         val forecastMadrid = WeatherForecast(
-            city = City(ciudad, 0.0, 0.0, "ES"),
-            today = Weather("2025-11-18", 20.0, 10.0, 25.0, "Nublado", 60, ""),
+            city = City(id = 2L, name = ciudad, country = "ES", lat = 0.0, lon = 0.0),
+            today = TodayWeather(temperature = 20.0, humidity = 60, description = "Nublado", icon = ""),
             nextDays = emptyList()
         )
         coEvery { repository.getWeatherForCityName(ciudad) } returns forecastMadrid

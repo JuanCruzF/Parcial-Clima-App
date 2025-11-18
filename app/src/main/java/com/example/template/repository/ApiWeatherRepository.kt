@@ -5,6 +5,8 @@ import com.example.template.model.DailyForecast
 import com.example.template.model.TodayWeather
 import com.example.template.model.WeatherForecast
 import com.example.template.network.WeatherApiClient
+import com.example.template.network.model.CurrentWeatherResponse
+import com.example.template.network.model.ForecastResponse
 
 class ApiWeatherRepository(
     private val apiClient: WeatherApiClient
@@ -27,15 +29,45 @@ class ApiWeatherRepository(
     }
 
     override suspend fun getWeatherForCityName(cityName: String): WeatherForecast {
-
         val current = apiClient.getCurrentWeatherByCityName(cityName)
-
-
         val forecast = apiClient.getForecastByCityName(cityName)
 
+        // The display name is just the city name when searching by name
+        return createWeatherForecast(current, forecast, cityName)
+    }
+
+    override suspend fun getWeatherForCoordinates(lat: Double, lon: Double): WeatherForecast {
+        val current = apiClient.getCurrentWeatherByCoordinates(lat, lon)
+        val forecast = apiClient.getForecastByCoordinates(lat, lon)
+
+        // Safely get the official city name from the geo API.
+        // This is an enhancement, so if it fails, we don't want the whole function to fail.
+        val officialCityName = try {
+            apiClient.searchCityByCoordinates(lat, lon).firstOrNull()?.name
+        } catch (e: Exception) {
+            null
+        }
+
+        val localityName = current.name
+
+        // Combine names only if the official city name is available and different from the locality name.
+        val displayName = if (officialCityName != null && officialCityName.isNotBlank() && officialCityName != localityName) {
+            "$localityName, $officialCityName"
+        } else {
+            localityName
+        }
+
+        return createWeatherForecast(current, forecast, displayName)
+    }
+
+    private fun createWeatherForecast(
+        current: CurrentWeatherResponse,
+        forecast: ForecastResponse,
+        displayName: String
+    ): WeatherForecast {
         val city = City(
             id = 0L,
-            name = current.name,
+            name = displayName, // Use the rich display name
             country = current.sys?.country ?: "",
             lat = current.coord.lat,
             lon = current.coord.lon

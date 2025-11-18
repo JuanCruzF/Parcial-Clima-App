@@ -93,23 +93,15 @@ class CitySelectorViewModel(
 
         viewModelScope.launch {
             try {
-                val city = repository.searchCityByCoordinates(lat, lon)
+                val weatherForecast = repository.getWeatherForCoordinates(lat, lon)
 
                 _state.update {
-                    if (city != null) {
-                        it.copy(
-                            query = city.name,
-                            results = listOf(city),
-                            isLoading = false,
-                            error = null
-                        )
-                    } else {
-                        it.copy(
-                            isLoading = false,
-                            results = emptyList(),
-                            error = "No se encontró ciudad para tu ubicación"
-                        )
-                    }
+                    it.copy(
+                        query = weatherForecast.city.name,
+                        results = listOf(weatherForecast.city),
+                        isLoading = false,
+                        error = null
+                    )
                 }
             } catch (e: Exception) {
                 _state.update {

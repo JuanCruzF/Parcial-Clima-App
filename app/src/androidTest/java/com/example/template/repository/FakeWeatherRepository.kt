@@ -1,7 +1,6 @@
 package com.example.template.repository
 
-import com.example.template.model.City
-import com.example.template.model.WeatherForecast
+import com.example.template.model.*
 
 class FakeWeatherRepository : WeatherRepository {
 
@@ -11,16 +10,50 @@ class FakeWeatherRepository : WeatherRepository {
         City(3, "Rosario", "AR", -32.9442, -60.6505)
     )
 
-    override suspend fun searchCities(query: String): List<City> = TODO("Provide the return value")
-
-    override suspend fun searchCityByCoordinates(lat: Double, lon: Double): City? {
-        // Elegimos la "más cercana" para las pruebas
-        return fakeCities.minByOrNull { city ->
-            val dLat = city.lat - lat
-            val dLon = city.lon - lon
-            dLat * dLat + dLon * dLon
-        }
+    override suspend fun searchCities(query: String): List<City> {
+        if (query.isBlank()) return fakeCities
+        return fakeCities.filter { it.name.contains(query, ignoreCase = true) }
     }
 
-    override suspend fun getWeatherForCityName(cityName: String): WeatherForecast = TODO("Provide the return value")
+    override suspend fun getWeatherForCityName(cityName: String): WeatherForecast {
+        val city = fakeCities.find { it.name.equals(cityName, ignoreCase = true) }
+            ?: fakeCities.first()
+
+        val today = TodayWeather(
+            temperature = when (city.name) {
+                "Buenos Aires" -> 24.0
+                "Córdoba" -> 27.0
+                "Rosario" -> 22.0
+                else -> 20.0
+            },
+            humidity = 60,
+            description = "Parcialmente nublado",
+            icon = "10d"
+        )
+
+        val nextDays = listOf(
+            DailyForecast("Mañana", 18.0, 25.0, "Soleado"),
+            DailyForecast("Pasado", 17.0, 24.0, "Nublado"),
+            DailyForecast("En 3 días", 19.0, 27.0, "Lluvias")
+        )
+
+        return WeatherForecast(
+            city = city,
+            today = today,
+            nextDays = nextDays
+        )
+    }
+
+    override suspend fun getWeatherForCoordinates(lat: Double, lon: Double): WeatherForecast {
+        // For this fake implementation, we can just return the weather for a default city.
+        return getWeatherForCityName(fakeCities.first().name)
+    }
+
+    override suspend fun searchCityByCoordinates(
+        lat: Double,
+        lon: Double
+    ): City? {
+        // For this fake implementation, we can just return the first city.
+        return fakeCities.firstOrNull()
+    }
 }
