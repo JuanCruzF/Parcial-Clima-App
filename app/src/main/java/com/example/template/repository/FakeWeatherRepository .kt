@@ -44,10 +44,16 @@ class FakeWeatherRepository : WeatherRepository {
         )
     }
 
+    override suspend fun getWeatherForCoordinates(lat: Double, lon: Double): WeatherForecast {
+        // For this fake implementation, we can just return the weather for a default city.
+        return getWeatherForCityName(fakeCities.first().name)
+    }
+
     override suspend fun searchCityByCoordinates(
         lat: Double,
         lon: Double
     ): City? {
-        TODO("Not yet implemented")
+        // For this fake implementation, we can just return the first city.
+        return fakeCities.firstOrNull()
     }
 }

@@ -9,5 +9,7 @@ interface WeatherRepository {
 
     suspend fun getWeatherForCityName(cityName: String): WeatherForecast
 
+    suspend fun getWeatherForCoordinates(lat: Double, lon: Double): WeatherForecast
+
     suspend fun searchCityByCoordinates(lat: Double, lon: Double): City?
 }

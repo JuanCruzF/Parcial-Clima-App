@@ -34,7 +34,7 @@ import com.example.template.viewmodel.TemaViewModel
 //composable raíz de la app - función de "View" en MVI.
 
 @Composable
-fun ClimaView(temaViewModel: TemaViewModel) {
+fun ClimaView(temaViewModel: TemaViewModel, ciudad: String) {
 
     // creamos la instancia de
     val climaViewModel: ClimaViewModel = viewModel()
@@ -44,8 +44,8 @@ fun ClimaView(temaViewModel: TemaViewModel) {
     val state by climaViewModel.state.collectAsState()
 
     //intent inicial
-    LaunchedEffect(Unit) {
-        climaViewModel.handleIntent(ClimaIntent.CargarClimaInicial)
+    LaunchedEffect(ciudad) {
+        climaViewModel.handleIntent(ClimaIntent.CargarClima(ciudad))
     }
 
     // llamado a UI
