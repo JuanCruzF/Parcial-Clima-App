@@ -2,7 +2,9 @@ package com.example.template
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import com.example.template.model.Clima
 import com.example.template.view.CiudadesView
+import com.example.template.viewmodel.TemaViewModel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,7 +22,6 @@ class CiudadesViewTest {
         val temaViewModel = TemaViewModel()
 
         composeTestRule.setContent {
-            CiudadesView(temaViewModel = temaViewModel, ciudadInicial = climaDePrueba.ciudad)
         }
 
         // TODO: This test needs to be improved to use the fake repository
